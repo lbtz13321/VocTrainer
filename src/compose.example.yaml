@@ -1,0 +1,15 @@
+services:
+  voctrainer:
+    image: voctrainer:latest
+    build:
+      context: ./VocTrainer
+      dockerfile: Dockerfile
+    ports:
+      - "5222:8080"
+    env_file:
+      - .env
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ConnectionStrings__Postgres=Host=${POSTGRES_HOST};Port=${POSTGRES_PORT};Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}
+      - PinHash=${PIN_HASH}
+    restart: unless-stopped

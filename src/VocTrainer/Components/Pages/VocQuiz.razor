@@ -1,0 +1,205 @@
+@page "/vocquiz"
+@rendermode InteractiveServer
+@inject VocService VocService
+
+<PageTitle>Quiz</PageTitle>
+
+<h1>Quiz</h1>
+
+@if (items is null)
+{
+    <p>Loading...</p>
+}
+else if (!items.Any())
+{
+    <p>No entries found.</p>
+}
+else
+{
+    <div class="mb-4">
+        <div class="filter-label">Filter by date</div>
+        <div class="date-filter">
+            @foreach (var date in AllDates)
+            {
+                <label class="date-chip @(IsDateVisible(date) ? "active" : "")">
+                    <input type="checkbox" class="form-check-input"
+                           checked="@IsDateVisible(date)"
+                           @onchange="() => ToggleDate(date)" />
+                    @date.ToString("dd.MM.yyyy")
+                </label>
+            }
+        </div>
+    </div>
+
+    <div class="mb-4">
+        <div class="filter-label">Direction</div>
+        <div class="d-flex gap-2 mt-1 flex-wrap">
+            <label class="direction-option @(showGerman ? "selected" : "")">
+                <input type="radio" class="form-check-input" name="direction"
+                       checked="@(showGerman)" @onchange="() => SetDirection(true)" />
+                German &rarr; English
+            </label>
+            <label class="direction-option @(!showGerman ? "selected" : "")">
+                <input type="radio" class="form-check-input" name="direction"
+                       checked="@(!showGerman)" @onchange="() => SetDirection(false)" />
+                English &rarr; German
+            </label>
+        </div>
+    </div>
+
+    @if (!quizStarted)
+    {
+        <button class="btn btn-primary" @onclick="StartQuiz" disabled="@(!FilteredItems.Any())">
+            Start Quiz (@FilteredItems.Count() words)
+        </button>
+    }
+    else if (current is not null)
+    {
+        <div class="card" style="max-width: 480px;">
+            <div class="card-body">
+                <div class="quiz-progress">
+                    <div class="quiz-progress-fill" style="width: @(Math.Round((double)currentIndex / quizItems.Count * 100))%"></div>
+                </div>
+                <p class="text-muted" style="font-family: var(--font-mono); font-size: 0.75rem;">
+                    @currentIndex / @quizItems.Count
+                </p>
+                <h3 class="card-title mb-4">@DisplayWord</h3>
+
+                @if (!revealed)
+                {
+                    <div class="input-group">
+                        <input class="form-control" placeholder="Type your answer..."
+                               @bind="userAnswer" @bind:event="oninput"
+                               @onkeydown="OnKeyDown" />
+                        <button class="btn btn-primary" @onclick="Reveal">Check</button>
+                    </div>
+                }
+                else
+                {
+                    <div>
+                        <p style="color: var(--text-secondary);">Your answer: <strong style="color: var(--text-primary);">@userAnswer</strong></p>
+                        @if (isCorrect)
+                        {
+                            <div class="alert alert-success py-2 mb-3">Correct!</div>
+                        }
+                        else
+                        {
+                            <div class="alert alert-danger py-2 mb-3">
+                                Wrong &mdash; correct answer: <strong>@CorrectAnswer</strong>
+                            </div>
+                        }
+                        <button class="btn btn-primary" @onclick="Next">
+                            @(currentIndex < quizItems.Count ? "Next" : "Results")
+                        </button>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="card" style="max-width: 480px;">
+            <div class="card-body" style="text-align: center; padding: 2.5rem 1.5rem;">
+                <div class="filter-label" style="margin-bottom: 0.75rem;">Results</div>
+                <div class="score-display">
+                    @correctCount <span class="score-total">/ @quizItems.Count</span>
+                </div>
+                <p class="text-muted mt-2 mb-4">answered correctly</p>
+                <button class="btn btn-primary" @onclick="StartQuiz">Try Again</button>
+            </div>
+        </div>
+    }
+}
+
+@code {
+    private IEnumerable<Vocabulary>? items;
+    private HashSet<DateOnly> hiddenDates = new();
+    private bool showGerman = true;
+
+    private bool quizStarted;
+    private List<Vocabulary> quizItems = new();
+    private Vocabulary? current;
+    private int currentIndex;
+    private int correctCount;
+    private string userAnswer = string.Empty;
+    private bool revealed;
+    private bool isCorrect;
+
+    private IEnumerable<DateOnly> AllDates => items?
+        .Select(v => v.Date).Distinct().OrderByDescending(d => d)
+        ?? Enumerable.Empty<DateOnly>();
+
+    private bool IsDateVisible(DateOnly date) => !hiddenDates.Contains(date);
+
+    private void ToggleDate(DateOnly date)
+    {
+        if (!hiddenDates.Remove(date))
+            hiddenDates.Add(date);
+        if (quizStarted) ResetQuiz();
+    }
+
+    private void SetDirection(bool german)
+    {
+        showGerman = german;
+        if (quizStarted) ResetQuiz();
+    }
+
+    private List<Vocabulary> FilteredItems => items?
+        .Where(v => !hiddenDates.Contains(v.Date)).ToList()
+        ?? new();
+
+    private string DisplayWord => showGerman ? current!.German : current!.English;
+    private string CorrectAnswer => showGerman ? current!.English : current!.German;
+
+    private void StartQuiz()
+    {
+        var rng = new Random();
+        quizItems = FilteredItems.OrderBy(_ => rng.Next()).ToList();
+        currentIndex = 0;
+        correctCount = 0;
+        quizStarted = true;
+        ShowNext();
+    }
+
+    private void ResetQuiz()
+    {
+        quizStarted = false;
+        current = null;
+        quizItems.Clear();
+    }
+
+    private void ShowNext()
+    {
+        if (currentIndex < quizItems.Count)
+        {
+            current = quizItems[currentIndex];
+            currentIndex++;
+            userAnswer = string.Empty;
+            revealed = false;
+            isCorrect = false;
+        }
+        else
+        {
+            current = null;
+        }
+    }
+
+    private void Reveal()
+    {
+        revealed = true;
+        isCorrect = string.Equals(userAnswer.Trim(), CorrectAnswer.Trim(), StringComparison.OrdinalIgnoreCase);
+        if (isCorrect) correctCount++;
+    }
+
+    private void OnKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter" && !revealed) Reveal();
+    }
+
+    private void Next() => ShowNext();
+
+    protected override async Task OnInitializedAsync()
+    {
+        items = await VocService.GetAllAsync();
+    }
+}
