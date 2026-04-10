@@ -1,14 +1,12 @@
 # VocTrainer
 
-A vocabulary trainer web app built with Blazor Server and PostgreSQL. Add, manage and quiz yourself on German-English vocabulary.
+A vocabulary trainer web app built with Blazor Server and PostgreSQL. Database running on my RaspberryPi 4
 
 ## Features
 
-- Browse and search your vocabulary list with date filtering
-- Interactive quiz mode (German &rarr; English and English &rarr; German)
-- PIN-protected management area for adding, editing and deleting entries
-- Dark theme UI
-- Docker support
+- List all the vocabulary from the database and filter it by date
+- Quiz mode (German &rarr; English and English &rarr; German)
+- Database management tab for adding, editing and deleting words from the database (PIN protected)
 
 ## Tech Stack
 
@@ -39,37 +37,25 @@ CREATE TABLE vocabulary (
 ### Configuration
 
 1. Copy the example config:
-   ```bash
-   cp VocTrainer/appsettings.Example.json VocTrainer/appsettings.json
-   ```
+
+   VocTrainer/appsettings.Example.json &rarr; VocTrainer/appsettings.json
+
 2. Fill in your PostgreSQL connection string and PIN hash.
 
-The PIN hash is a SHA-256 hex digest of your desired PIN, e.g.:
-```bash
-echo -n "1234" | sha256sum
-```
+The PIN hash is a SHA-256 hex digest of your desired PIN
 
 ### Run
 
-```bash
-cd VocTrainer
-dotnet run
-```
-
-The app starts at `http://localhost:5222`.
+The app locally starts at `http://localhost:5222`.
 
 ### Docker
 
 1. Copy and fill in the environment file:
-   ```bash
-   cp compose.example.yaml compose.yaml
-   cp .env.example .env
-   # edit .env with your values
-   ```
+   compose.example.yaml &rarr; compose.yaml
+
+   .env.example &rarr; .env
+
 2. Start the container:
-   ```bash
-   docker compose up -d
-   ```
 
 ## License
 
