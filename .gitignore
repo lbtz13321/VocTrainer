@@ -13,6 +13,7 @@ obj/
 appsettings.json
 appsettings.*.json
 !appsettings.Example.json
+compose.yaml
 
 # OS
 Thumbs.db
