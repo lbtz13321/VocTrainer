@@ -6,4 +6,5 @@ public class Vocabulary
     public DateOnly Date { get; set; }
     public string German { get; set; } = string.Empty;
     public string English { get; set; } = string.Empty;
+    public bool Exam { get; set; }
 }

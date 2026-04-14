@@ -51,6 +51,11 @@
             <input class="form-control" placeholder="English"
                    @bind="formEnglish" @bind:event="oninput" />
         </div>
+        <div class="form-check mb-2">
+            <input type="checkbox" class="form-check-input" id="formExam"
+                   @bind="formExam" />
+            <label class="form-check-label" for="formExam">Exam</label>
+        </div>
         <div class="d-flex gap-2">
             <button class="btn btn-primary" @onclick="Save"
                     disabled="@(string.IsNullOrWhiteSpace(formGerman) || string.IsNullOrWhiteSpace(formEnglish))">
@@ -80,6 +85,7 @@ else
             <th>Date</th>
             <th>German</th>
             <th>English</th>
+            <th>Exam</th>
             <th style="width: 140px;"></th>
         </tr>
         </thead>
@@ -90,6 +96,7 @@ else
                 <td style="font-family: var(--font-mono); font-size: 0.8rem;">@item.Date.ToString("dd.MM.yyyy")</td>
                 <td>@item.German</td>
                 <td>@item.English</td>
+                <td>@(item.Exam ? "✓" : "")</td>
                 <td>
                     <div class="d-flex gap-2">
                         <button class="btn-icon" title="Edit" @onclick="() => StartEdit(item)">
@@ -165,6 +172,7 @@ else
     private Vocabulary? editingItem;
     private string formGerman = string.Empty;
     private string formEnglish = string.Empty;
+    private bool formExam;
 
     private string pinInput = string.Empty;
     private bool pinError;
@@ -223,6 +231,7 @@ else
         {
             editingItem.German = formGerman.Trim();
             editingItem.English = formEnglish.Trim();
+            editingItem.Exam = formExam;
             await VocService.UpdateAsync(editingItem);
             editingItem = null;
         }
@@ -232,13 +241,15 @@ else
             {
                 Date = DateOnly.FromDateTime(DateTime.Today),
                 German = formGerman.Trim(),
-                English = formEnglish.Trim()
+                English = formEnglish.Trim(),
+                Exam = formExam
             };
             await VocService.AddAsync(vocab);
         }
 
         formGerman = string.Empty;
         formEnglish = string.Empty;
+        formExam = false;
         await LoadItems();
     }
 
@@ -247,6 +258,7 @@ else
         editingItem = item;
         formGerman = item.German;
         formEnglish = item.English;
+        formExam = item.Exam;
     }
 
     private void CancelEdit()
@@ -254,6 +266,7 @@ else
         editingItem = null;
         formGerman = string.Empty;
         formEnglish = string.Empty;
+        formExam = false;
     }
 
     private async Task Delete(Vocabulary item)

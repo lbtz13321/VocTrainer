@@ -32,6 +32,15 @@ else
     </div>
 
     <div class="mb-4">
+        <label class="date-chip @(examOnly ? "active" : "")">
+            <input type="checkbox" class="form-check-input"
+                   checked="@examOnly"
+                   @onchange="ToggleExamOnly" />
+            Only exam words
+        </label>
+    </div>
+
+    <div class="mb-4">
         <div class="filter-label">Direction</div>
         <div class="d-flex gap-2 mt-1 flex-wrap">
             <label class="direction-option @(showGerman ? "selected" : "")">
@@ -115,6 +124,7 @@ else
     private IEnumerable<Vocabulary>? items;
     private HashSet<DateOnly> hiddenDates = new();
     private bool showGerman = true;
+    private bool examOnly;
 
     private bool quizStarted;
     private List<Vocabulary> quizItems = new();
@@ -145,8 +155,16 @@ else
     }
 
     private List<Vocabulary> FilteredItems => items?
-        .Where(v => !hiddenDates.Contains(v.Date)).ToList()
+        .Where(v => !hiddenDates.Contains(v.Date))
+        .Where(v => !examOnly || v.Exam)
+        .ToList()
         ?? new();
+
+    private void ToggleExamOnly()
+    {
+        examOnly = !examOnly;
+        if (quizStarted) ResetQuiz();
+    }
 
     private string DisplayWord => showGerman ? current!.German : current!.English;
     private string CorrectAnswer => showGerman ? current!.English : current!.German;
