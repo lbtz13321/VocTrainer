@@ -31,11 +31,11 @@ public class VocService(IConfiguration config)
 
     public async Task AddAsync(Vocabulary vocab) =>
         await Db.ExecuteAsync(
-            "INSERT INTO vocabulary (date, german, english) VALUES (@Date, @German, @English)", vocab);
+            "INSERT INTO vocabulary (date, german, english, exam) VALUES (@Date, @German, @English, @Exam)", vocab);
 
     public async Task UpdateAsync(Vocabulary vocab) =>
         await Db.ExecuteAsync(
-            "UPDATE vocabulary SET date = @Date, german = @German, english = @English WHERE id = @Id", vocab);
+            "UPDATE vocabulary SET date = @Date, german = @German, english = @English, exam = @Exam WHERE id = @Id", vocab);
 
     public async Task DeleteAsync(int id) =>
         await Db.ExecuteAsync(

@@ -30,7 +30,8 @@ CREATE TABLE vocabulary (
     id SERIAL PRIMARY KEY,
     date DATE NOT NULL,
     german TEXT NOT NULL,
-    english TEXT NOT NULL
+    english TEXT NOT NULL,
+    exam BOOLEAN NOT NULL DEFAULT FALSE
 );
 ```
 
